@@ -5,6 +5,7 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 const app = express();
 app.use(express.json());
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 puppeteer.use(StealthPlugin());
 
@@ -42,7 +43,7 @@ app.post('/screenshot', async (req, res) => {
         console.log(`Navegando para ${url}...`);
         await page.goto(url);
         
-        await page.waitForTimeout(45000);
+        sleep(45000);
         // Tira um screenshot
         console.log('Tirando screenshot...');
         const screenshot = await page.screenshot({ encoding: 'base64' });
