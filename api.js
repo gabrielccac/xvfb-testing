@@ -1,5 +1,5 @@
 import express from 'express';
-// import Xvfb from 'xvfb';
+import Xvfb from 'xvfb';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
@@ -9,13 +9,13 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 puppeteer.use(StealthPlugin());
 
-// const xvfb = new Xvfb({
-//     silent: true,
-//     xvfb_args: ['-screen', '99', '1280x1024x24', '-ac'],
-// });
+const xvfb = new Xvfb({
+    silent: true,
+    xvfb_args: ['-screen', '0', '1280x1024x24', '-ac'],
+});
 
 console.log('Iniciando Xvfb...');
-// xvfb.startSync();
+xvfb.startSync();
 console.log('Xvfb iniciado com sucesso');
 
 app.post('/screenshot', async (req, res) => {
