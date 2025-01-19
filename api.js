@@ -11,7 +11,7 @@ puppeteer.use(StealthPlugin());
 
 const xvfb = new Xvfb({
     silent: true,
-    xvfb_args: ['-screen', '99', '1920x1080x24', '-ac'],
+    xvfb_args: ['-screen', '0', '1920x1080x24', '-ac'],
 });
 
 console.log('Iniciando Xvfb...');
@@ -43,7 +43,8 @@ app.post('/screenshot', async (req, res) => {
                 '--force-device-scale-factor=1',
                 '--disable-accelerated-2d-canvas',
                 '--no-first-run',
-                '--no-default-browser-check'
+                '--no-default-browser-check',
+                'display=:99.0'
             ]
         });
 
