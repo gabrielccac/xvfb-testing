@@ -10,9 +10,8 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 puppeteer.use(StealthPlugin());
 
 const xvfb = new Xvfb({
-    displayNum: 99,
     silent: true,
-    xvfb_args: ['-screen', '0', '1920x1080x24', '-ac'],
+    xvfb_args: ['-screen', '99', '1920x1080x24', '-ac'],
 });
 
 console.log('Iniciando Xvfb...');
@@ -34,6 +33,17 @@ app.post('/screenshot', async (req, res) => {
             defaultViewport: null,
             args: [
                 '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--start-maximized',
+                '--display=:99.0',  // Especifica o display do Xvfb
+                '--disable-gpu',
+                '--disable-software-rasterizer',
+                '--ignore-certificate-errors',
+                '--force-device-scale-factor=1',
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-default-browser-check'
             ]
         });
 
@@ -46,6 +56,8 @@ app.post('/screenshot', async (req, res) => {
                 get: () => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0'
             });
         });
+
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0');
 
         console.log(`Navegando para ${url}...`);
         await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
