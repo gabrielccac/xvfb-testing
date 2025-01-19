@@ -2,7 +2,7 @@ import express from 'express';
 import Xvfb from 'xvfb';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import fs from 'fs';
+import { solve } from '2captcha';
 
 const app = express();
 app.use(express.json());
@@ -19,18 +19,14 @@ console.log('Iniciando Xvfb...');
 xvfb.startSync();
 console.log('Xvfb iniciado com sucesso');
 
+// Função auxiliar para detectar captcha
 async function detectCaptcha(page) {
     console.log('Iniciando detecção de captcha...');
     
-    // Salva screenshot inicial para debug
-    await page.screenshot({ path: 'debug-captcha.png' });
-    
-    // Procura por elementos de captcha
     const captchaInfo = await page.evaluate(() => {
         const info = {
             iframes: [],
             elements: [],
-            recaptcha: null,
             hcaptcha: null
         };
 
@@ -43,7 +39,7 @@ async function detectCaptcha(page) {
             });
         });
 
-        // Procura por elementos com 'captcha' no texto/id/classe
+        // Procura por elementos com 'captcha'
         document.querySelectorAll('*').forEach(el => {
             const text = el.textContent?.toLowerCase() || '';
             const id = el.id?.toLowerCase() || '';
@@ -59,12 +55,6 @@ async function detectCaptcha(page) {
             }
         });
 
-        // Procura por reCAPTCHA
-        const recaptchaElement = document.querySelector('[data-sitekey]');
-        if (recaptchaElement) {
-            info.recaptcha = recaptchaElement.getAttribute('data-sitekey');
-        }
-
         // Procura por hCaptcha
         const hcaptchaElement = document.querySelector('[data-hcaptcha-sitekey]');
         if (hcaptchaElement) {
@@ -74,12 +64,23 @@ async function detectCaptcha(page) {
         return info;
     });
 
-    // Salva o HTML da página para análise
-    const html = await page.content();
-    fs.writeFileSync('debug-page.html', html);
-
     console.log('Informações de captcha encontradas:', JSON.stringify(captchaInfo, null, 2));
     return captchaInfo;
+}
+
+async function solveCaptcha(url) {
+    try {
+        const captchaResult = await solve({
+            token: '8310192b96dfe9b04e6030495b3274ed',
+            sitekey: 'b8bbded1-9d04-4ace-9952-b67cde081a7b',
+            url: url,
+            method: 'hcaptcha'
+        });
+        return captchaResult.data;
+    } catch (error) {
+        console.error('Erro ao resolver captcha:', error);
+        throw error;
+    }
 }
 
 app.post('/screenshot', async (req, res) => {
@@ -119,13 +120,8 @@ app.post('/screenshot', async (req, res) => {
         await page.setRequestInterception(true);
         page.on('request', request => {
             const url = request.url();
-            if (url.includes('google.com/recaptcha') || url.includes('hcaptcha.com')) {
+            if (url.includes('hcaptcha.com')) {
                 console.log('URL de captcha detectada:', url);
-                // Procura por parâmetros de sitekey
-                const sitekey = url.match(/[?&](k|sitekey)=([^&]*)/);
-                if (sitekey) {
-                    console.log('Sitekey encontrado na URL:', sitekey[2]);
-                }
             }
             request.continue();
         });
@@ -157,7 +153,26 @@ app.post('/screenshot', async (req, res) => {
         // Detecta captcha após carregar a página
         const captchaInfo = await detectCaptcha(page);
         
-        await sleep(30000);
+        // Se encontrou captcha, tenta resolver
+        if (captchaInfo.hcaptcha || captchaInfo.iframes.some(iframe => iframe.src.includes('hcaptcha'))) {
+            console.log('Captcha detectado, tentando resolver...');
+            const token = await solveCaptcha(url);
+            
+            // Insere a resposta do captcha
+            await page.evaluate((token) => {
+                document.getElementById('h-captcha-response-0iv4y685a96f').value = token;
+                // Dispara o callback do hCaptcha
+                if (window.hcaptcha) {
+                    window.hcaptcha.submit();
+                }
+            }, token);
+            
+            // Espera um pouco para o captcha ser processado
+            await sleep(5000);
+        }
+        
+        await sleep(3000); // Reduzido o tempo de espera
+        
         console.log('Tirando screenshot...');
         const screenshot = await page.screenshot({ encoding: 'base64' });
 
@@ -191,3 +206,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
 });
+
+// 8310192b96dfe9b04e6030495b3274ed
