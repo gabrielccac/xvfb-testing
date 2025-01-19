@@ -40,8 +40,14 @@ app.post('/screenshot', async (req, res) => {
         console.log('Abrindo nova página...');
         const page = await browser.newPage();
         
+        await page.evaluateOnNewDocument(() => {
+            Object.defineProperty(window.navigator, 'userAgent', {
+                get: () => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0'
+            });
+        });
+
         console.log(`Navegando para ${url}...`);
-        await page.goto(url);
+        await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
         
         await sleep(45000);
         // Tira um screenshot
