@@ -3,13 +3,14 @@
     "version": "1.0.0",
     "type": "module",
     "scripts": {
-      "start": "node api.js"
+        "start": "node api.js"
     },
     "dependencies": {
-      "express": "^4.18.2",
-      "puppeteer": "^24.1.0",
-      "puppeteer-extra": "^3.3.6",
-      "puppeteer-extra-plugin-stealth": "^2.11.2",
-      "xvfb": "^0.4.0"
+        "2captcha": "^3.0.5-2",
+        "express": "^4.18.2",
+        "puppeteer": "^24.1.0",
+        "puppeteer-extra": "^3.3.6",
+        "puppeteer-extra-plugin-stealth": "^2.11.2",
+        "xvfb": "^0.4.0"
     }
-  }
+}
