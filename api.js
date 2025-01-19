@@ -1,5 +1,5 @@
 import express from 'express';
-// import Xvfb from 'xvfb';
+import Xvfb from 'xvfb';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
