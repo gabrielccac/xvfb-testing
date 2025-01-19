@@ -32,6 +32,9 @@ app.post('/screenshot', async (req, res) => {
         browser = await puppeteer.launch({
             headless: false,
             defaultViewport: null,
+            args: [
+                '--no-sandbox',
+            ]
         });
 
         console.log('Abrindo nova página...');
