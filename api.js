@@ -2,11 +2,14 @@ import express from 'express';
 import Xvfb from 'xvfb';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import { solve } from '2captcha';
+import pkg from '2captcha';
+const { Solver } = pkg;
 
 const app = express();
 app.use(express.json());
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+const solver = new Solver('8310192b96dfe9b04e6030495b3274ed');
 
 puppeteer.use(StealthPlugin());
 
@@ -70,13 +73,11 @@ async function detectCaptcha(page) {
 
 async function solveCaptcha(url) {
     try {
-        const captchaResult = await solve({
-            token: '8310192b96dfe9b04e6030495b3274ed',
+        const result = await solver.hcaptcha({
             sitekey: 'b8bbded1-9d04-4ace-9952-b67cde081a7b',
-            url: url,
-            method: 'hcaptcha'
+            url: url
         });
-        return captchaResult.data;
+        return result.data;
     } catch (error) {
         console.error('Erro ao resolver captcha:', error);
         throw error;
@@ -135,7 +136,6 @@ app.post('/screenshot', async (req, res) => {
             Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
             Object.defineProperty(navigator, 'languages', { get: () => ['pt-BR', 'pt'] });
             
-            // Adiciona mais propriedades para evitar detecção
             Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 8 });
             Object.defineProperty(navigator, 'deviceMemory', { get: () => 8 });
             Object.defineProperty(navigator, 'connection', {
@@ -171,7 +171,7 @@ app.post('/screenshot', async (req, res) => {
             await sleep(5000);
         }
         
-        await sleep(3000); // Reduzido o tempo de espera
+        await sleep(3000);
         
         console.log('Tirando screenshot...');
         const screenshot = await page.screenshot({ encoding: 'base64' });
@@ -206,5 +206,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
 });
-
-// 8310192b96dfe9b04e6030495b3274ed
