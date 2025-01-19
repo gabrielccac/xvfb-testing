@@ -10,6 +10,7 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 puppeteer.use(StealthPlugin());
 
 const xvfb = new Xvfb({
+    displayNum: 99,
     silent: true,
     xvfb_args: ['-screen', '0', '1920x1080x24', '-ac'],
 });
@@ -33,7 +34,8 @@ app.post('/screenshot', async (req, res) => {
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
-                '--start-maximized'
+                '--start-maximized',
+                '--display=:99'
             ]
         });
 
