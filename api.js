@@ -42,6 +42,7 @@ app.post('/screenshot', async (req, res) => {
         console.log(`Navegando para ${url}...`);
         await page.goto(url);
         
+        await page.waitForTimeout(45000);
         // Tira um screenshot
         console.log('Tirando screenshot...');
         const screenshot = await page.screenshot({ encoding: 'base64' });
