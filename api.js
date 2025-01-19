@@ -1,5 +1,5 @@
 import express from 'express';
-import Xvfb from 'xvfb';
+// import Xvfb from 'xvfb';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
@@ -9,13 +9,13 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 puppeteer.use(StealthPlugin());
 
-const xvfb = new Xvfb({
-    silent: true,
-    xvfb_args: ['-screen', '0', '1920x1080x24', '-ac'],
-});
+// const xvfb = new Xvfb({
+//     silent: true,
+//     xvfb_args: ['-screen', '99', '1280x1024x24', '-ac'],
+// });
 
 console.log('Iniciando Xvfb...');
-xvfb.startSync();
+// xvfb.startSync();
 console.log('Xvfb iniciado com sucesso');
 
 app.post('/screenshot', async (req, res) => {
@@ -44,7 +44,6 @@ app.post('/screenshot', async (req, res) => {
                 '--disable-accelerated-2d-canvas',
                 '--no-first-run',
                 '--no-default-browser-check',
-                'display=:99.0'
             ]
         });
 
@@ -56,9 +55,11 @@ app.post('/screenshot', async (req, res) => {
             Object.defineProperty(window.navigator, 'userAgent', {
                 get: () => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0'
             });
+            Object.defineProperty(navigator, 'webdriver', { get: () => false });
+            Object.defineProperty(navigator, 'platform', { get: () => 'Win32' });
+            Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+            Object.defineProperty(navigator, 'languages', { get: () => ['pt-BR', 'pt'] });
         });
-
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0');
 
         console.log(`Navegando para ${url}...`);
         await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
