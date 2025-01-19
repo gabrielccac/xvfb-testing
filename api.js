@@ -1,5 +1,5 @@
 import express from 'express';
-import Xvfb from 'xvfb';
+// import Xvfb from 'xvfb';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
@@ -31,19 +31,18 @@ app.post('/screenshot', async (req, res) => {
         console.log('Iniciando browser...');
         browser = await puppeteer.launch({
             headless: false,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--start-maximized',
-                '--display=:99'
-            ]
+            defaultViewport: null,
         });
 
         console.log('Abrindo nova página...');
         const page = await browser.newPage();
-        
-        const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0';
-        await page.setUserAgent(userAgent);
+        const client = await page.target().createCDPSession();
+
+        await page.evaluateOnNewDocument(() => {
+            Object.defineProperty(window.navigator, 'userAgent', {
+                get: () => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0'
+            });
+        });
 
         console.log(`Navegando para ${url}...`);
         await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
